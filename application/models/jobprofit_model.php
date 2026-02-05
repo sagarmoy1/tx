@@ -17,7 +17,7 @@ class Jobprofit_model extends CI_Model
         $sql = "SELECT SUM(t1.awarded_price) AS awarded_price,t1.language,t1.complete_date,(t1.job_price - SUM(t1.awarded_price)) AS profit,GROUP_CONCAT(t1.translators) AS translators,GROUP_CONCAT(t1.name) AS name,t1.lineNumberCode,t1.job_price AS job_price,t1.id,t1.stage FROM (SELECT SUM(bidjob.price) AS awarded_price, jobpost.language AS language, MAX(bidjob.complete_date) AS complete_date,MAX(invoice.id) AS invoice_id, GROUP_CONCAT(CONCAT(translator.first_name,' ',translator.last_name)) AS translators, jobpost.name AS name, jobpost.lineNumberCode AS lineNumberCode, jobpost.price AS job_price, bidjob.job_id AS id, bidjob.stage AS stage from bidjob JOIN jobpost ON jobpost.id = bidjob.job_id JOIN translator ON bidjob.trans_id = translator.id JOIN invoice ON invoice.bid_id = bidjob.id WHERE bidjob.is_done = 1 AND bidjob.stage <> 1 AND invoice.is_deleted = 0 GROUP BY jobpost.id ORDER BY bidjob.complete_date DESC ) AS t1 WHERE lineNumberCode IS NOT NULL";
         $check = 1;
         if (!is_null($search_string) and $search_string != '') {
-            $sql .= " AND (name LIKE '%" . $search_string . "%' OR lineNumberCode LIKE '%" . $search_string . "%') ";
+            $sql .= " AND (name LIKE '%" . $this->db->escape_like_str($search_string) . "%' OR lineNumberCode LIKE '%" . $this->db->escape_like_str($search_string) . "%') ";
             $check = 1;
         }
         if ($start_date != '' && $end_date != '') {
@@ -51,18 +51,18 @@ class Jobprofit_model extends CI_Model
 
         if ($margin_profit_from != '') {
             if ($check == 1) {
-                $sql .= ' AND ((profit/job_price)*100) >= ' . $margin_profit_from;
+                $sql .= ' AND ((profit/job_price)*100) >= ' . (float)$margin_profit_from;
             } else {
-                $sql .= ' WHERE ((profit/job_price)*100) >= ' . $margin_profit_from;
+                $sql .= ' WHERE ((profit/job_price)*100) >= ' . (float)$margin_profit_from;
                 $check = 1;
             }
         }
 
         if ($margin_profit_to != '') {
             if ($check == 1) {
-                $sql .= ' AND ((profit/job_price)*100) <= ' . $margin_profit_to;
+                $sql .= ' AND ((profit/job_price)*100) <= ' . (float)$margin_profit_to;
             } else {
-                $sql .= ' WHERE ((profit/job_price)*100) <= ' . $margin_profit_to;
+                $sql .= ' WHERE ((profit/job_price)*100) <= ' . (float)$margin_profit_to;
                 $check = 1;
             }
         }
@@ -73,7 +73,7 @@ class Jobprofit_model extends CI_Model
         //vince change
         $sql .= " ORDER BY invoice_id DESC ";
 
-        $sql .= "LIMIT {$limit_end}, {$limit_start}";
+        $sql .= "LIMIT " . (int)$limit_end . ", " . (int)$limit_start;
 
         $query = $this->db->query($sql);
 //        print_r($this->db->last_query()); exit;
@@ -96,7 +96,7 @@ class Jobprofit_model extends CI_Model
         $sql = "SELECT SUM(t1.awarded_price) AS awarded_price,t1.language,t1.complete_date,(t1.job_price - SUM(t1.awarded_price)) AS profit,GROUP_CONCAT(t1.translators) AS translators,GROUP_CONCAT(t1.name) AS name,t1.lineNumberCode,t1.job_price AS job_price,t1.id,t1.stage FROM (SELECT SUM(bidjob.price) AS awarded_price, jobpost.language AS language, bidjob.complete_date AS complete_date,MAX(invoice.id) AS invoice_id, GROUP_CONCAT(CONCAT(translator.first_name,' ',translator.last_name)) AS translators, jobpost.name AS name, jobpost.lineNumberCode AS lineNumberCode, jobpost.price AS job_price, bidjob.job_id AS id, bidjob.stage AS stage from bidjob JOIN jobpost ON jobpost.id = bidjob.job_id JOIN translator ON bidjob.trans_id = translator.id JOIN invoice ON invoice.bid_id = bidjob.id WHERE bidjob.is_done = 1 AND bidjob.stage <> 1 AND invoice.is_deleted = 0 GROUP BY jobpost.id ORDER BY bidjob.complete_date DESC ) AS t1 WHERE lineNumberCode IS NOT NULL";
         $check = 1;
         if (!is_null($search_string) and $search_string != '') {
-            $sql .= " AND (name LIKE '%" . $search_string . "%' OR lineNumberCode LIKE '%" . $search_string . "%' ) ";
+            $sql .= " AND (name LIKE '%" . $this->db->escape_like_str($search_string) . "%' OR lineNumberCode LIKE '%" . $this->db->escape_like_str($search_string) . "%' ) ";
             $check = 1;
         }
         if ($start_date != '' && $end_date != '') {
@@ -168,7 +168,7 @@ class Jobprofit_model extends CI_Model
                 ) t1";
         $check = 0;
         if (!is_null($search_string) and $search_string != '') {
-            $sql .= " WHERE name LIKE '%" . $search_string . "%' OR lineNumberCode LIKE '%" . $search_string . "%' ";
+            $sql .= " WHERE (name LIKE '%" . $this->db->escape_like_str($search_string) . "%' OR lineNumberCode LIKE '%" . $this->db->escape_like_str($search_string) . "%') ";
             $check = 1;
         }
         if ($start_date != '' && $end_date != '') {

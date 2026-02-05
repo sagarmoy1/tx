@@ -39,21 +39,17 @@ class Home extends CI_Controller {
         if ($this->session->userdata('is_client_login')) {
             redirect('home/loggedin');
         } else {
-            $user = $_POST['username'];
-            $password = $_POST['password'];
+            $user = $this->input->post('username');
+            $password = $this->input->post('password');
 
             $this->form_validation->set_rules('username', 'Username', 'required');
             $this->form_validation->set_rules('password', 'Password', 'required');
 
             if ($this->form_validation->run() == FALSE) {
- /*
-         * Code By Abhishek R. Kaushik
-         * Sr. Software Developer 
-         */
                 $this->load->view('login');
             } else {
-                $sql = "SELECT * FROM users WHERE user_name = '" . $user . "' AND user_hash = '" . md5($password) . "'";
-                $val = $this->db->query($sql);
+                $sql = "SELECT * FROM users WHERE user_name = ? AND user_hash = ?";
+                $val = $this->db->query($sql, array($user, md5($password)));
 
 
                 if ($val->num_rows) {

@@ -175,11 +175,11 @@ class Translators_model extends CI_Model {
         $sql .= "WHERE ";
         $sql .= " b1.awarded = 1 AND ";
         $sql .= " b1.stage = 1 AND ";
-        $sql .= " b1.trans_id = {$translator_id} AND ";
+        $sql .= " b1.trans_id = ? AND ";
         $sql .= " p2.is_awarded = 1 AND ";
-        $sql .= " j.id = {$job_id}";
+        $sql .= " j.id = ?";
 
-        $query = $this->db->query($sql);
+        $query = $this->db->query($sql, array($translator_id, $job_id));
 
         return $query->result_array();
     }
@@ -221,7 +221,7 @@ class Translators_model extends CI_Model {
     public function copy_table($condition=''){
     	if($condition!=''){
     		
-    		$query='INSERT INTO `translator_archive` SELECT * FROM `translator` WHERE `id`='.$condition;
+    		$query='INSERT INTO `translator_archive` SELECT * FROM `translator` WHERE `id`=' . (int)$condition;
     		if($this->db->query($query)){
     			return true;
     		} else{

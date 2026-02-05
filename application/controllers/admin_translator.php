@@ -154,17 +154,17 @@ class Admin_Translator extends CI_Controller {
 					'email' => $this->input->post('email'),
 					'created' => date('Y-m-d h:i:s')
 					);
-				$sql = "SELECT * FROM invite WHERE email = '" . $this->input->post('email') . "'";
-            	$val = $this->db->query($sql);	
+				$sql = "SELECT * FROM invite WHERE email = ?";
+            	$val = $this->db->query($sql, array($this->input->post('email')));
 				if ($val->num_rows) {
 				$data['message_error'] = "Email Address already taken. ";
-				
+
 				} else{
 					$query=$this->db->insert('invite',$data_to_store);
 					if($query){
 					$mail=$this->input->post('email');
-					$sql="SELECT * FROM `invite` WHERE `email`='$mail'";
-				    $val=$this->db->query($sql);
+					$sql="SELECT * FROM `invite` WHERE `email` = ?";
+				    $val=$this->db->query($sql, array($mail));
 				    $fetch=$val->row();
 					
 					$mailTo=$mail;
@@ -383,14 +383,14 @@ class Admin_Translator extends CI_Controller {
 			//redirect('admin_jobpost/edit/'.$job_id);
 			} else {
 			
-			$sql = "UPDATE `invite` SET 
-			`first_name`   = '".$this->input->post('first_name')."',
-			`last_name`   = '".$this->input->post('last_name')."', 
-			`email`   = '".$this->input->post('email')."', 					
-			`modified`    = '". date('Y-m-d h:i:s') ."'
-			WHERE `id` = '" .$id. "'";
-			
-			$val = $this->db->query($sql);
+			$sql = "UPDATE `invite` SET `first_name` = ?, `last_name` = ?, `email` = ?, `modified` = ? WHERE `id` = ?";
+			$val = $this->db->query($sql, array(
+				$this->input->post('first_name'),
+				$this->input->post('last_name'),
+				$this->input->post('email'),
+				date('Y-m-d h:i:s'),
+				$id
+			));
 			
 			if($val == TRUE){
 			$this->session->set_flashdata('success_message', 'Successfully Updated');

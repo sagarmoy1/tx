@@ -56,13 +56,13 @@ class Admin extends CI_Controller
 
         //$is_valid = $this->Admins_model->validate($user_name, $password);
 
-        $sql = "SELECT * FROM admin WHERE user_name = '" . $user_name . "' AND pass_word = '" . $password . "'";
-        $val = $this->db->query($sql);
+        $sql = "SELECT * FROM admin WHERE user_name = ? AND pass_word = ?";
+        $val = $this->db->query($sql, array($user_name, $password));
         $is_valid = $val->num_rows;
         if ($is_valid == 1) {
 
-            $sql .= " AND status = 1 ";
-            $val2 = $this->db->query($sql);
+            $sql2 = "SELECT * FROM admin WHERE user_name = ? AND pass_word = ? AND status = 1";
+            $val2 = $this->db->query($sql2, array($user_name, $password));
             $is_active = $val2->num_rows;
             if ($is_active == 1) {
 
@@ -77,7 +77,6 @@ class Admin extends CI_Controller
                     );
 
                     $this->session->set_userdata($data);
-                    $_COOKIE['admin_id'] = $res['id'];
                     $this->session->set_flashdata('success_message', 'Successfully Loged In');
                     if ($res['admin_type'] == 3) {
                         redirect("cs_admin/index");
@@ -153,7 +152,6 @@ class Admin extends CI_Controller
     function logout()
     {
         $this->session->sess_destroy();
-        session_destroy();
         redirect('admin');
     }
 
@@ -173,22 +171,21 @@ class Admin extends CI_Controller
             $ladmin_id = $this->session->userdata('admin_id');
             //die;
             $this->form_validation->set_rules('old_word', 'Password', 'trim|required|min_length[4]|max_length[32]');
-            $newpass = $this->form_validation->set_rules('pass_word', 'Password', 'trim|required|min_length[4]|max_length[32]');
-            $conpass = $this->form_validation->set_rules('con_pass_word', 'Password Confirmation', 'trim|required|matches[pass_word]');
-            //$this->form_validation->set_error_delimiters('<div class="alert alert-error"><a class="close" data-dismiss="alert">×</a><strong>', '</strong></div>');
-            $chanpass = $this->__encrip_password($this->input->post('pass_word'));
-            $current = mysql_num_rows(mysql_query("SELECT * FROM admin WHERE pass_word = '" . $this->__encrip_password($this->input->post('old_word')) . "'  AND id = '" . $ladmin_id . "' "));
-            //echo $current;
-            //echo $this->__encrip_password($this->input->post('pass_word'));
+            $this->form_validation->set_rules('pass_word', 'Password', 'trim|required|min_length[4]|max_length[32]');
+            $this->form_validation->set_rules('con_pass_word', 'Password Confirmation', 'trim|required|matches[pass_word]');
 
             if ($this->form_validation->run() == FALSE) {
                 $this->session->set_flashdata('flash_error', 'errorValidation');
                 $this->load->view('admin/vwChangepass', $data);
             } else {
+                $check_sql = "SELECT * FROM admin WHERE pass_word = ? AND id = ?";
+                $check_val = $this->db->query($check_sql, array($this->__encrip_password($this->input->post('old_word')), $ladmin_id));
+                $current = $check_val->num_rows();
+
                 if ($current > 0) {
-                    if ($newpass == $conpass) {
-                        $sql = "UPDATE admin SET `pass_word` = '" . $this->__encrip_password($this->input->post('pass_word')) . "' WHERE id = '" . $ladmin_id . "'";
-                        $val = $this->db->query($sql);
+                    if ($this->input->post('pass_word') == $this->input->post('con_pass_word')) {
+                        $sql = "UPDATE admin SET `pass_word` = ? WHERE id = ?";
+                        $val = $this->db->query($sql, array($this->__encrip_password($this->input->post('pass_word')), $ladmin_id));
                         $this->session->set_flashdata('success_message', 'Successfully Change your password..');
                         redirect('admin/changepass');
                     }
@@ -242,8 +239,8 @@ class Admin extends CI_Controller
                 $this->load->view('admin/vwChangeprofile', $data);
             } else {
                 //echo $ladmin_id;die;
-                $sql = "UPDATE admin SET `first_name` = '" . $this->input->post('first_name') . "', `last_name` = '" . $this->input->post('last_name') . "', `email_addres` = '" . $this->input->post('email_addres') . "', `phone` = '" . $this->input->post('phone') . "', `alter_email` = '" . $this->input->post('alter_email') . "' WHERE id = '" . $ladmin_id . "'";
-                $val = $this->db->query($sql);
+                $sql = "UPDATE admin SET `first_name` = ?, `last_name` = ?, `email_addres` = ?, `phone` = ?, `alter_email` = ? WHERE id = ?";
+                $val = $this->db->query($sql, array($this->input->post('first_name'), $this->input->post('last_name'), $this->input->post('email_addres'), $this->input->post('phone'), $this->input->post('alter_email'), $ladmin_id));
                 $this->session->set_flashdata('success_message', 'Successfully Change your Profile.');
                 redirect('admin/changeprofile');
 
@@ -286,10 +283,13 @@ class Admin extends CI_Controller
                 $this->session->set_flashdata('flash_error', 'errorValidation');
 
             } else {
-                $sql = "UPDATE `settings` SET `title` = '" . $this->input->post('title') . "', `tag_line` = '" . $this->input->post('tag_line') . "', `email` = '" . $this->input->post('email') . "',`paypal_id` = '" . $this->input->post('paypal_id') . "', `phone` = '" . $this->input->post('phone') . "', `address` = '" . $this->input->post('address') . "', `facebook` = '" . $this->input->post('facebook') . "', `twitter` = '" . $this->input->post('twitter') . "', `googlep` = '" . $this->input->post('googlep') . "',`instagram` = '" . $this->input->post('instagram') . "',
-`youtube` = '" . $this->input->post('youtube') . "',`printerus` = '" . $this->input->post('printerus') . "'  WHERE id = '1'";
-
-                $val = $this->db->query($sql);
+                $sql = "UPDATE `settings` SET `title` = ?, `tag_line` = ?, `email` = ?, `paypal_id` = ?, `phone` = ?, `address` = ?, `facebook` = ?, `twitter` = ?, `googlep` = ?, `instagram` = ?, `youtube` = ?, `printerus` = ? WHERE id = '1'";
+                $val = $this->db->query($sql, array(
+                    $this->input->post('title'), $this->input->post('tag_line'), $this->input->post('email'),
+                    $this->input->post('paypal_id'), $this->input->post('phone'), $this->input->post('address'),
+                    $this->input->post('facebook'), $this->input->post('twitter'), $this->input->post('googlep'),
+                    $this->input->post('instagram'), $this->input->post('youtube'), $this->input->post('printerus')
+                ));
                 $data['message_success'] = "Successfully Change Your Profile";
                 $this->session->set_flashdata('success_message', 'Successfully Change your Profile.');
                 redirect('admin/sitesettings');
@@ -322,12 +322,12 @@ class Admin extends CI_Controller
             $this->session->set_flashdata('flash_error', 'errorValidation');
         } else {
 
-            $sql = "SELECT * FROM admin WHERE email_addres = '" . $this->input->post('email_addres') . "'";
+            $sql = "SELECT * FROM admin WHERE email_addres = ?";
 
-            $val = $this->db->query($sql);
-            $check = $val->num_rows;
+            $val = $this->db->query($sql, array($this->input->post('email_addres')));
+            $check = $val->num_rows();
             if ($check > 0) {
-                $row = mysql_fetch_object(mysql_query($sql));
+                $row = $val->row();
                 $Emaildata['first_name'] = $row->first_name;
                 $Emaildata['last_name'] = $row->last_name;
                 $Emaildata['username'] = $this->input->post('email_addres');
@@ -337,9 +337,8 @@ class Admin extends CI_Controller
                 $pass_word = md5($Emaildata['password']);
 
 
-                $sql = "UPDATE admin SET `pass_word` = '" . $pass_word . "' WHERE email_addres = '" . $this->input->post('email_addres') . "'";
-                //echo $sql ;die;
-                $val = $this->db->query($sql);
+                $sql = "UPDATE admin SET `pass_word` = ? WHERE email_addres = ?";
+                $val = $this->db->query($sql, array($pass_word, $this->input->post('email_addres')));
                 if ($val) {
                     $this->email->set_mailtype("html");
                     $this->email->from('info@translation.co.uk');
@@ -402,8 +401,8 @@ class Admin extends CI_Controller
                 'created' => date("Y-m-d H:i:s")
 
             );
-            $sql = "SELECT * FROM admin WHERE email_addres= '" . $this->input->post('email_address') . "' ";
-            $val = $this->db->query($sql);
+            $sql = "SELECT * FROM admin WHERE email_addres = ?";
+            $val = $this->db->query($sql, array($this->input->post('email_address')));
             if ($val->num_rows) {
                 $data['message_error'] = "Email Address/Adminname already taken.";
                 $this->load->view('admin/vwRegister', $data);
@@ -534,22 +533,21 @@ class Admin extends CI_Controller
             } else {
 
 
-                $sql = "UPDATE `admin` SET 
-					`first_name`   = '" . $this->input->post('first_name') . "', 
-					`last_name`   = '" . $this->input->post('last_name') . "',
-					`alter_email`   = '" . $this->input->post('alter_email') . "', 					
-					`status`    = '" . $this->input->post('status') . "',
-					`phone`    = '" . $this->input->post('phone_no') . "',
-					`modified`= '" . date("Y-m-d H:i:s") . "'";
+                $update_data = array(
+                    'first_name' => $this->input->post('first_name'),
+                    'last_name' => $this->input->post('last_name'),
+                    'alter_email' => $this->input->post('alter_email'),
+                    'status' => $this->input->post('status'),
+                    'phone' => $this->input->post('phone_no'),
+                    'modified' => date("Y-m-d H:i:s")
+                );
 
                 if ($this->input->post('alter_password')) {
-                    $sql .= ", pass_word = '" . md5($this->input->post('alter_password')) . "' ";
+                    $update_data['pass_word'] = md5($this->input->post('alter_password'));
                 }
 
-                $sql .= "WHERE `id` = '" . $admin_id . "'";
-
-
-                $val = $this->db->query($sql);
+                $this->db->where('id', $admin_id);
+                $val = $this->db->update('admin', $update_data);
                 //echo '<pre>'; print_r($sql); die;
                 $data['message_success'] = "Successfully Changed Admin Profile";
 

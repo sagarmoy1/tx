@@ -105,11 +105,11 @@
                                 
                                    <?php if($this->session->flashdata('success_message'))
 							    { ?>
-								 <div class="alert alert-danger">	
+								 <div class="alert alert-success">
 								 <button type="button" class="close" data-dismiss="alert">
                                  <i class="ace-icon fa fa-times"></i>
-                                 </button>	
-									
+                                 </button>
+
                                 <p><?php echo $this->session->flashdata('success_message'); ?></p>
                                  </div>
 								

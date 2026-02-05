@@ -35,11 +35,9 @@ class Translator extends CI_Controller
     function UrlAlias($string, $table, $id = NULL)
     {
 
-        //remove any '-' from the string they will be used as concatonater
+        //remove any '-' and '_' from the string they will be used as concatonater
 
-        $str = str_replace('-', ' ', $string);
-
-        $str = str_replace('_', ' ', $string);
+        $str = str_replace(array('-', '_'), ' ', $string);
 
         // remove any duplicate whitespace, and ensure all characters are alphanumeric
 
@@ -55,17 +53,17 @@ class Translator extends CI_Controller
 
         if ($id == NULL) {
 
-            $sql = "SELECT * FROM " . $table . " WHERE 1 AND `alias` ='" . $str . "'";
+            $sql = "SELECT * FROM `" . $table . "` WHERE 1 AND `alias` = ?";
+            $res = $this->db->query($sql, array($str));
 
         } else {
 
-            $sql = "SELECT * FROM " . $table . " WHERE 1 AND `alias` ='" . $str . "' AND `id` <> '" . $id . "'";
+            $sql = "SELECT * FROM `" . $table . "` WHERE 1 AND `alias` = ? AND `id` <> ?";
+            $res = $this->db->query($sql, array($str, $id));
 
         }
 
-        $res = mysql_query($sql);
-
-        $rowcount = mysql_num_rows($res);
+        $rowcount = $res->num_rows();
 
 
         if ($rowcount == 0) {
@@ -139,22 +137,17 @@ class Translator extends CI_Controller
         if ($adminID != '') {
 
             $sql = "SELECT * FROM `ajax_chat_messages` WHERE `status` = 'unread' AND `type`= 'user'";
+            $query = $this->db->query($sql);
 
         } else {
 
-            //$sql = "SELECT * FROM `ajax_chat_messages` WHERE `status` = 'unread' AND `type`= 'admin' AND `trans_id` = $trans_id ";
-            $t_id = $_GET['trans_id'];
-            die($t_id);
-            $sql = "SELECT * FROM `ajax_chat_messages` WHERE `status` = 'unread' AND `type`= 'admin' AND `trans_id` = $adminID";
+            $sql = "SELECT * FROM `ajax_chat_messages` WHERE `status` = 'unread' AND `type`= 'admin' AND `trans_id` = ?";
+            $query = $this->db->query($sql, array($trans_id));
 
         }
 
 
-        $query = $this->db->query($sql);
-
         $data = $query->result();
-
-        //print_r($data);
 
         $num = $query->num_rows();
 
@@ -169,9 +162,8 @@ class Translator extends CI_Controller
 
         $trans_id = $this->session->userdata('translator_id');
         if (isset($trans_id) && $trans_id != '') {
-            $sql = "SELECT * FROM ajax_chat_messages  WHERE ajax_chat_messages.status = 'unread' AND ajax_chat_messages.type = 'admin' AND ajax_chat_messages.type= 'admin' AND ajax_chat_messages.trans_id= " . $this->session->userdata('translator_id') . " AND ajax_chat_messages.bid_id IN (SELECT bidjob.id FROM bidjob WHERE bidjob.trans_id = " . $this->session->userdata('translator_id') . ")";
-
-            $query = $this->db->query($sql);
+            $sql = "SELECT * FROM ajax_chat_messages WHERE ajax_chat_messages.status = 'unread' AND ajax_chat_messages.type = 'admin' AND ajax_chat_messages.trans_id = ? AND ajax_chat_messages.bid_id IN (SELECT bidjob.id FROM bidjob WHERE bidjob.trans_id = ?)";
+            $query = $this->db->query($sql, array($trans_id, $trans_id));
 
             $data = $query->result();
 
@@ -257,21 +249,19 @@ class Translator extends CI_Controller
 
                 $password = $this->__encrip_password($this->input->post('pass_word'));
 
-                $sql = "SELECT * FROM translator WHERE user_name = '" . $user_name . "' AND pass_word = '" . $password . "' ";
+                $sql = "SELECT * FROM translator WHERE user_name = ? AND pass_word = ?";
 
 
-                $val = $this->db->query($sql);
+                $val = $this->db->query($sql, array($user_name, $password));
 
                 $is_valid = $val->num_rows;
 
                 if ($is_valid == 1) {
 
 
-                    //$sql2 = $sql." AND (verified = '0' OR status = '0') ";
+                    $sql2 = "SELECT * FROM translator WHERE user_name = ? AND pass_word = ? AND (verified = 0 OR verified = 2)";
 
-                    $sql2 = $sql . " AND (verified = 0 OR verified = 2) ";
-
-                    $val2 = $this->db->query($sql2);
+                    $val2 = $this->db->query($sql2, array($user_name, $password));
 
                     $verified = $val2->num_rows;
 
@@ -891,19 +881,9 @@ class Translator extends CI_Controller
 
             $this->form_validation->set_rules('old_word', 'Password', 'trim|required|min_length[4]|max_length[32]');
 
-            $newpass = $this->form_validation->set_rules('pass_word', 'Password', 'trim|required|min_length[4]|max_length[32]');
+            $this->form_validation->set_rules('pass_word', 'Password', 'trim|required|min_length[4]|max_length[32]');
 
-            $conpass = $this->form_validation->set_rules('con_pass_word', 'Password Confirmation', 'trim|required|matches[pass_word]');
-
-            //$this->form_validation->set_error_delimiters('<div class="alert alert-error"><a class="close" data-dismiss="alert">×</a><strong>', '</strong></div>');
-
-            $chanpass = $this->__encrip_password($this->input->post('pass_word'));
-
-            $current = mysql_num_rows(mysql_query("SELECT * FROM translator WHERE pass_word = '" . $this->__encrip_password($this->input->post('old_word')) . "'  AND id = '" . $luser_id . "' "));
-
-            //echo $current;
-
-            //echo $this->__encrip_password($this->input->post('pass_word'));
+            $this->form_validation->set_rules('con_pass_word', 'Password Confirmation', 'trim|required|matches[pass_word]');
 
 
             if ($this->form_validation->run() == FALSE) {
@@ -914,13 +894,17 @@ class Translator extends CI_Controller
 
             } else {
 
+                $check_sql = "SELECT * FROM translator WHERE pass_word = ? AND id = ?";
+                $check_val = $this->db->query($check_sql, array($this->__encrip_password($this->input->post('old_word')), $luser_id));
+                $current = $check_val->num_rows();
+
                 if ($current > 0) {
 
-                    if ($newpass == $conpass) {
+                    if ($this->input->post('pass_word') == $this->input->post('con_pass_word')) {
 
-                        $sql = "UPDATE translator SET `pass_word` = '" . $this->__encrip_password($this->input->post('pass_word')) . "' WHERE id = '" . $luser_id . "'";
+                        $sql = "UPDATE translator SET `pass_word` = ? WHERE id = ?";
 
-                        $val = $this->db->query($sql);
+                        $val = $this->db->query($sql, array($this->__encrip_password($this->input->post('pass_word')), $luser_id));
 
                         $data['message_success'] = "Successfully Change your password.";
 

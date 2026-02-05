@@ -33,7 +33,7 @@ class Adminjobpost_model extends CI_Model {
         $this->db->order_by("id", "desc");
 
 		if ($search_string) {
-			$this->db->where("`name` LIKE '%$search_string%' OR lineNumberCode LIKE '%$search_string%'");
+			$this->db->where("(`name` LIKE '%" . $this->db->escape_like_str($search_string) . "%' OR lineNumberCode LIKE '%" . $this->db->escape_like_str($search_string) . "%')");
 		}
 
 		$this->db->group_by('jobpost.id');
@@ -52,7 +52,7 @@ class Adminjobpost_model extends CI_Model {
         $this->db->where("proofread_required IN (-1, 0, NULL, '')");
 
 		if ($search_string) {
-			$this->db->where("`name` LIKE '%$search_string%' OR lineNumberCode LIKE '%$search_string%'");
+			$this->db->where("(`name` LIKE '%" . $this->db->escape_like_str($search_string) . "%' OR lineNumberCode LIKE '%" . $this->db->escape_like_str($search_string) . "%')");
 		}
 
 		$query = $this->db->get();
@@ -72,7 +72,7 @@ class Adminjobpost_model extends CI_Model {
 
 		if($search_string){
 			//$this->db->like('description', $search_string);
-			$this->db->where("(`name` LIKE '%$search_string%')");
+			$this->db->where("(`name` LIKE '%" . $this->db->escape_like_str($search_string) . "%')");
 		}
 
 		$this->db->group_by('jobpost.id');
@@ -103,7 +103,7 @@ class Adminjobpost_model extends CI_Model {
 		//$this->db->where("isProofreadJob", $isProofreadJob);
 		if($search_string){
 			//$this->db->like('description', $search_string);
-			$this->db->where("(`name` LIKE '%$search_string%')");
+			$this->db->where("(`name` LIKE '%" . $this->db->escape_like_str($search_string) . "%')");
 		}
 		if($order){
 			$this->db->order_by($order, 'Asc');

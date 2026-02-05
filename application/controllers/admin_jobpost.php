@@ -42,9 +42,8 @@ class Admin_Jobpost extends CI_Controller {
 	}
 
 	function UrlAlias ($string, $table, $id = NULL) {
-        //remove any '-' from the string they will be used as concatonater
-        $str = str_replace('-', ' ', $string);
-        $str = str_replace('_', ' ', $string);
+        //remove any '-' and '_' from the string they will be used as concatonater
+        $str = str_replace(array('-', '_'), ' ', $string);
         // remove any duplicate whitespace, and ensure all characters are alphanumeric
         $str = preg_replace(array('/\s+/','/[^A-Za-z0-9\-]/'), array('-',''), $str);
 
@@ -53,19 +52,19 @@ class Admin_Jobpost extends CI_Controller {
 
   		// checking if in db or not
  		 if($id == NULL){
-			$sql = "SELECT * FROM ".$table." WHERE 1 AND `alias` ='".$str."'";
+			$sql = "SELECT * FROM `".$table."` WHERE 1 AND `alias` = ?";
+			$res = $this->db->query($sql, array($str));
 			} else {
-			$sql = "SELECT * FROM ".$table." WHERE 1 AND `alias` ='".$str."' AND `id` <> '".$id."'";
+			$sql = "SELECT * FROM `".$table."` WHERE 1 AND `alias` = ? AND `id` <> ?";
+			$res = $this->db->query($sql, array($str, $id));
 			}
-			$res = mysql_query($sql);
-			$rowcount = mysql_num_rows($res);
+			$rowcount = $res->num_rows();
 
 			if($rowcount == 0) {
 			return $str;
 			} else {
 				$number=mt_rand ( 100 , 999);
 				return $str.$number;
-			//return false;
 			}
     		}
 
@@ -231,8 +230,8 @@ class Admin_Jobpost extends CI_Controller {
             $id   = $this->input->post('id');
             $file = $this->input->post('file');
 
-            $sql = "UPDATE jobpost SET file = CONCAT(file, '".$file."'), totalfile = CONCAT(totalfile, '".$file."') WHERE id = {$id}";
-            return $this->db->query($sql);
+            $sql = "UPDATE jobpost SET file = CONCAT(file, ?), totalfile = CONCAT(totalfile, ?) WHERE id = ?";
+            return $this->db->query($sql, array($file, $file, $id));
         }
     }
 

@@ -9,9 +9,8 @@ class Front_Job extends CI_Controller {
 		$this->load->model('front_job_model');
 	}
 	function UrlAlias ($string, $table, $id = NULL) {
-        //remove any '-' from the string they will be used as concatonater
-        $str = str_replace('-', ' ', $string);
-        $str = str_replace('_', ' ', $string);
+        //remove any '-' and '_' from the string they will be used as concatonater
+        $str = str_replace(array('-', '_'), ' ', $string);
         // remove any duplicate whitespace, and ensure all characters are alphanumeric
         $str = preg_replace(array('/\s+/','/[^A-Za-z0-9\-]/'), array('-',''), $str);
 
@@ -20,12 +19,13 @@ class Front_Job extends CI_Controller {
 
   		// checking if in db or not
  		 if($id == NULL){
-			$sql = "SELECT * FROM ".$table." WHERE 1 AND `alias` ='".$str."'";
+			$sql = "SELECT * FROM `".$table."` WHERE 1 AND `alias` = ?";
+			$res = $this->db->query($sql, array($str));
 			} else {
-			$sql = "SELECT * FROM ".$table." WHERE 1 AND `alias` ='".$str."' AND `id` <> '".$id."'";
+			$sql = "SELECT * FROM `".$table."` WHERE 1 AND `alias` = ? AND `id` <> ?";
+			$res = $this->db->query($sql, array($str, $id));
 			}
-			$res = mysql_query($sql);
-			$rowcount = mysql_num_rows($res);
+			$rowcount = $res->num_rows();
 
 			if($rowcount == 0) {
 			return $str;
@@ -176,10 +176,7 @@ class Front_Job extends CI_Controller {
 				$this->load->view('translator/vwLogin');
 			} else {
 	$search=$this->input->post('search');
-	echo $search;
 	$language=$this->input->post('job_language');
-	echo $language;
-	die;
 	$this->load->model('translators_model');
 	$data['searchquery']=$this->translators_model->get_jobpost();
 	$this->load->view('translator/vwJobs',$data);
