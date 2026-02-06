@@ -134,11 +134,6 @@ if(navigator.userAgent.match(/Trident.*rv:11\./)) {
         ($(window).scrollTop() > windowheight) ? e.fadeIn(speed) : e.fadeOut(speed);
     }
 
-    $(window).scroll(function () {
-        show_scrollTop()
-    });
-    show_scrollTop();
-
     /* Scroll Menu Fix */
     var bar = $("#bar");
     var body = $('body');
@@ -156,9 +151,20 @@ if(navigator.userAgent.match(/Trident.*rv:11\./)) {
             header.attr('class', 'scroll');
         }
     }
+
+    /* Throttled scroll handler to avoid layout thrashing */
+    var scrollTicking = false;
     $(window).scroll(function () {
-        show_bar()
+        if (!scrollTicking) {
+            window.requestAnimationFrame(function () {
+                show_scrollTop();
+                show_bar();
+                scrollTicking = false;
+            });
+            scrollTicking = true;
+        }
     });
+    show_scrollTop();
     show_bar();
 
     /* ---------------------------------------------------------------------- */
@@ -826,4 +832,4 @@ $(document).ready(function () {
 
 
 
-/*$(".video-container").fitVids();*/
+$(".video-container").fitVids();

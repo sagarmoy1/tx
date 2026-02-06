@@ -31,14 +31,14 @@
             case "application/excel":
             case "application/powerpoint":
                 ?>
-                <iframe class="myIfrm" src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url('uploads/' . $document) ?>'
+                <iframe class="myIfrm" loading="lazy" src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url('uploads/' . $document) ?>'
                         frameborder='0'></iframe>
                 <?php
                 break;
 
             case "application/pdf":
                 ?>
-                <iframe class="myIfrm" src="https://docs.google.com/gview?url=<?php echo base_url('uploads/' . $document) ?>&embedded=true"
+                <iframe class="myIfrm" loading="lazy" src="https://docs.google.com/gview?url=<?php echo base_url('uploads/' . $document) ?>&embedded=true"
                         frameborder="0"></iframe>
                 <?php
                 break;
@@ -46,7 +46,7 @@
 
 
             case "text/x-comma-separated-values": ?>
-                <iframe class="myIfrm" src='http://datapipes.okfnlabs.org/csv/html/?url=<?php echo base_url('uploads/'.$document) ?>' frameborder='0'></iframe>
+                <iframe class="myIfrm" loading="lazy" src='http://datapipes.okfnlabs.org/csv/html/?url=<?php echo base_url('uploads/'.$document) ?>' frameborder='0'></iframe>
                 <?php
                 break;
 

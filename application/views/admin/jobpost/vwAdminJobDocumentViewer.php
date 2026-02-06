@@ -46,7 +46,7 @@ foreach ($documents as $document) {
                 case "application/powerpoint":
 
                     ?>
-                    <iframe class="myIfrm"
+                    <iframe class="myIfrm" loading="lazy"
                             src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url('uploads/' . $document['document']) ?>'
                             frameborder='0'></iframe>
 
@@ -55,7 +55,7 @@ foreach ($documents as $document) {
 
                 case "application/pdf":
                     ?>
-                    <iframe class="myIfrm"
+                    <iframe class="myIfrm" loading="lazy"
                             src="https://docs.google.com/gview?url=<?php echo base_url() . 'uploads/' . $document['document'] ?>&embedded=true"
                             frameborder="0"></iframe>
                     <!--<iframe  class="myIfrm" src="<?php echo base_url('uploads/' . $document['document']) ?>" frameborder="0" ></iframe>-->
@@ -79,7 +79,7 @@ foreach ($documents as $document) {
                     break;
 
                 case "text/x-comma-separated-values": ?>
-                    <iframe class="myIfrm" src='http://datapipes.okfnlabs.org/csv/html/?url=<?php echo base_url('uploads/'.$document['document']) ?>' frameborder='0'></iframe>
+                    <iframe class="myIfrm" loading="lazy" src='http://datapipes.okfnlabs.org/csv/html/?url=<?php echo base_url('uploads/'.$document['document']) ?>' frameborder='0'></iframe>
                     <?php
                     break;
 
